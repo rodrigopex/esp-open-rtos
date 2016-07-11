@@ -15,6 +15,9 @@
 
 #define UART_FIFO_MAX 127
 
+#define UART0 0
+#define UART1 1
+
 /* Wait for at least `min_count` bytes of data to be available in the UART's
  * receive FIFO
  *
