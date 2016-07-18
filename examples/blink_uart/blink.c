@@ -9,6 +9,20 @@
 #include "esp8266.h"
 #include <stdio.h>
 
+#ifdef WIFI_SSID
+#undef WIFI_SSID
+#endif
+
+#ifdef WIFI_PASS
+#undef WIFI_PASS
+#endif
+
+
+#define WIFI_SSID "IC"
+#define WIFI_PASS "icomputacaoufal"
+//#define WIFI_SSID "GVT-C3C5"
+//#define WIFI_PASS "5403000556"
+
 void blinkenTask(void *pvParameters)
 {
     while(1) {

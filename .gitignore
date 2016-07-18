@@ -11,3 +11,7 @@ local.mk
 local.h
 screenlog.*
 *.creator.user
+*.config
+*.files
+*.include
+*.creator
