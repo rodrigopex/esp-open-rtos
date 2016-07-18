@@ -3,3 +3,4 @@ Makefile
 mongoose.h
 mongoose.c
 esp_libc.c
+../../local.mk
