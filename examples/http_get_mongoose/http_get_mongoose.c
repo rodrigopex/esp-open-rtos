@@ -6,6 +6,8 @@
  */
 #include "espressif/esp_common.h"
 #include "esp/uart.h"
+
+/* Go inside and change the PASSWORD and SSID for your connection. */
 #include "ssid_config.h"
 
 #include "FreeRTOS.h"
@@ -21,6 +23,8 @@
 #define MG_TASK_STACK_SIZE 4096
 #define MG_TASK_PRIORITY 1
 #define MG_REQUESTER_TASK_PRIORITY 2
+
+#define __vTaskDelayMs(x) vTaskDelay(x/portTICK_RATE_MS)
 
 struct mg_mgr mongoose_event_manager;
 
@@ -50,7 +54,7 @@ static void do_request(void *arg) {
         mg_set_protocol_http_websocket(nc);
         for(int countdown = 10; countdown >= 0; countdown--) {
             printf("%d... ", countdown);
-            vTaskDelay(1000 / portTICK_RATE_MS);
+            __vTaskDelayMs(1000);
         }
         printf("\r\nStarting again!\r\n");
     }
@@ -60,7 +64,7 @@ static void mg_task(void *arg) {
     uint8_t status = -1;
     while(status != STATION_GOT_IP) {
         status = sdk_wifi_station_get_connect_status();
-        vTaskDelay(1000/portTICK_RATE_MS);
+        __vTaskDelayMs(1000);
     }
     printf("Connection done and got ip!\r\n");
     mg_mgr_init(&mongoose_event_manager, NULL);
