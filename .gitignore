@@ -10,8 +10,9 @@ firmware
 local.mk
 local.h
 screenlog.*
-*.creator.user
+*.user
 *.config
 *.files
-*.include
 *.creator
+*.creator.user
+*.swp
