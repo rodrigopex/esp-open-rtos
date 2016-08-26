@@ -1,0 +1,6 @@
+.
+../../core/include
+../../include
+../../FreeRTOS/Source/include
+../../FreeRTOS/Source/portable/esp8266
+/Users/rodrigopex/Tools/esp-open-sdk/esp-open-rtos/libc/xtensa-lx106-elf/include
