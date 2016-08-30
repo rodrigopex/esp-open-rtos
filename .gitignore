@@ -13,6 +13,7 @@ screenlog.*
 *.user
 *.config
 *.files
+*.includes
 *.creator
 *.creator.user
 *.swp
