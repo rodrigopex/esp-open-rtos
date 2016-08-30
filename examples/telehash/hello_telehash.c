@@ -36,28 +36,22 @@ void blinkTicTask(void *pvParameters)
     vTaskDelete(NULL);
 }
 
-//void blinkTacTask(void *pvParameters)
-//{
-//    portTickType lastTick = xTaskGetTickCount();
-//    const uint32_t period = 2000 / portTICK_RATE_MS;
-//    vTaskDelay(100);
-//    while(1) {
-//        vTaskDelayUntil(&lastTick, period);
-//        printf("- tac %u, %u\n", lastTick, xTaskGetTickCount());
-//    }
-//    vTaskDelete(NULL);
-//}
-
 void user_init(void)
 {
     uart_set_baud(UART0, 115200);
+    struct sdk_station_config config = {
+        .ssid = WIFI_SSID,
+        .password = WIFI_PASS,
+    };
+
+    /* required to call wifi_set_opmode before station_set_config */
+    sdk_wifi_set_opmode(STATIONAP_MODE);
+    sdk_wifi_station_set_config(&config);
+
 
     mesh_t mesh = mesh_new();
     mesh_generate(mesh);
-    printf("my id info is %u\n",mesh_json(mesh)->id);
+    printf("My id info is %s\n",mesh_json(mesh));
 
-    //    vTaskDelay(300);
-        xTaskCreate(blinkTicTask, (signed char *)"blinkTicTask", 256, NULL, 3, NULL);
-    //    vTaskDelay(100);
-    //    xTaskCreate(blinkTacTask, (signed char *)"blinkTacTask", 256, NULL, 3, NULL);
+    xTaskCreate(blinkTicTask, (signed char *)"blinkTicTask", 256, NULL, 3, NULL);
 }

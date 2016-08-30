@@ -79,8 +79,7 @@ void *util_sys_log(uint8_t level, const char *file, int line, const char *functi
   }
   va_start (args, format);
   vsnprintf (buffer, 256, format, args);
-  fprintf(stderr,"%s%s:%d %s() %s\n",lstr,file, line, function, buffer);
-  fflush(stderr);
+  printf("%s%s:%d %s() %s\n",lstr,file, line, function, buffer);
   va_end (args);
   return NULL;
 }

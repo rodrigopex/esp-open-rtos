@@ -5816,18 +5816,6 @@ uint8_t e3x_cipher_init(lob_t options)
   
   if(lob_get_cmp(options, "force", "1a") == 0) return 0;
 
-//  e3x_cipher_sets[CS_1c] = cs1c_init(options);
-//  if(e3x_cipher_sets[CS_1c]) e3x_cipher_default = e3x_cipher_sets[CS_1c];
-//  if(lob_get(options, "err")) return 1;
-  
-//  e3x_cipher_sets[CS_2a] = cs2a_init(options);
-//  if(e3x_cipher_sets[CS_2a]) e3x_cipher_default = e3x_cipher_sets[CS_2a];
-//  if(lob_get(options, "err")) return 1;
-
-//  e3x_cipher_sets[CS_3a] = cs3a_init(options);
-//  if(e3x_cipher_sets[CS_3a]) e3x_cipher_default = e3x_cipher_sets[CS_3a];
-//  if(lob_get(options, "err")) return 1;
-
   return 0;
 }
 
@@ -5872,13 +5860,13 @@ mesh_t mesh_new(void)
 {
   mesh_t mesh;
   
-  // make sure we've initialized
+  // make sure we've initialized  
   if(e3x_init(NULL)) return LOG_ERROR("e3x init failed");
 
   if(!(mesh = malloc(sizeof (struct mesh_struct)))) return NULL;
   memset(mesh, 0, sizeof(struct mesh_struct));
   
-  LOG_INFO("mesh created version %d.%d.%d",TELEHASH_VERSION_MAJOR,TELEHASH_VERSION_MINOR,TELEHASH_VERSION_PATCH);
+  LOG_INFO("mesh created version %d.%d.%d\n",TELEHASH_VERSION_MAJOR,TELEHASH_VERSION_MINOR,TELEHASH_VERSION_PATCH);
 
   return mesh;
 }
