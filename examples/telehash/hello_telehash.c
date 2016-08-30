@@ -10,6 +10,8 @@
 #include <stdio.h>
 
 #include "telehash.h"
+#include "unit_test.h"
+
 
 #ifdef WIFI_SSID
 #undef WIFI_SSID
@@ -25,42 +27,54 @@
 #define WIFI_SSID "GVT-C3C5"
 #define WIFI_PASS "5403000556"
 
+#define A_KEY "anfpjrveyyloypswpqzlfkjpwynahohffy"
+#define A_SEC "cgcsbs7yphotlb5fxls5ogy2lrc7yxbg"
+#define B_KEY "amhofcnwgmolf3owg2kipr5vus7uifydsy"
+#define B_SEC "ge4i7h3jln4kltngwftg2yqtjjvemerw"
+
+tmesh_t netA = NULL, netB = NULL;
+#define RXTX(a,b) (a->tx)?memcpy(b->frame,a->frame,64):memcpy(a->frame,b->frame,64)
+
 #define __vTaskDelayMs(x) vTaskDelay(x/portTICK_RATE_MS)
 
 mesh_t mesh;
 lob_t secrets;
 
-static uint8_t status = 0;
-
-void link_check(link_t link)
+tempo_t driver_sort(tmesh_t tm, tempo_t a, tempo_t b)
 {
-  status = link_up(link) ? 1 : 0;
+  if(a) return a;
+  return b;
 }
 
-void telehashTask(void *pvParameters)
+uint8_t scheduled = 0;
+tmesh_t driver_schedule(tmesh_t tm)
 {
-    lob_t id;
-    mesh_t mesh;
-    net_udp4_t udp4;
-
-    mesh = mesh_new();
-    mesh_generate(mesh);
-    mesh_on_discover(mesh,"auto",mesh_add); // accept anyone
-    mesh_on_link(mesh, "test", link_check); // testing the event being triggered
-    status = 0;
-
-    udp4 = net_udp4_new(mesh, NULL);
-
-    id = mesh_json(mesh);
-    printf("%s\n",lob_json(id));
-    fflush(stdout);
-
-    while(net_udp4_receive(udp4) && !status) {
-        __vTaskDelayMs(100);
-    }
-    vTaskDelete(NULL);
+  // start knock
+  scheduled++;
+  return tm;
 }
-void blinkTicTask(void *pvParameters)
+
+tmesh_t driver_advance(tmesh_t tm, tempo_t tempo, uint8_t seed[8])
+{
+  // set channel and advance at based on seed
+  tempo->at++;
+  tempo->chan++;
+  return tm;
+}
+
+tmesh_t driver_medium(tmesh_t tm, tempo_t tempo, uint8_t seed[8], uint32_t medium)
+{
+  tempo->driver = (void*)1; // flag for test check
+  tempo->medium = medium?medium:1;
+  return tm;
+}
+
+tmesh_t driver_free(tmesh_t tm, tempo_t tempo)
+{
+  return tm;
+}
+
+void tMeshTestTask(void *pvParameters)
 {
     uint8_t status = 0;
     while(status != STATION_GOT_IP) {
@@ -69,18 +83,57 @@ void blinkTicTask(void *pvParameters)
     }
     printf("Connection done and got ip!\r\n");
 
-    mesh = mesh_new();
-    secrets = mesh_generate(mesh);
-    mesh_on_discover(mesh, (char *) "test", discover_handle);
-    LOG_INFO("My id info is %s\n",hashname_char(mesh->id));
-    LOG_INFO("Json secrets: %s\n", lob_json(secrets));
+    fail_unless(!e3x_init(NULL)); // random seed
 
-    portTickType lastTick = xTaskGetTickCount();
-    const uint32_t period = 2000 / portTICK_RATE_MS;
-    while(1) {
-        vTaskDelayUntil(&lastTick, period);
-        printf("+ tic %u, %u\n", lastTick, xTaskGetTickCount());
-    }
+    mesh_t meshA = mesh_new();
+    fail_unless(meshA);
+    lob_t keyA = lob_new();
+    lob_set(keyA,"1a",A_KEY);
+    lob_t secA = lob_new();
+    lob_set(secA,"1a",A_SEC);
+    fail_unless(!mesh_load(meshA,secA,keyA));
+    mesh_on_discover(meshA,"auto",mesh_add);
+
+    lob_t keyB = lob_new();
+    lob_set(keyB,"1a",B_KEY);
+    hashname_t hnB = hashname_vkeys(keyB);
+    fail_unless(hnB);
+    link_t linkAB = link_get(meshA,hnB);
+    fail_unless(linkAB);
+
+    netA = tmesh_new(meshA, "test", NULL);
+    fail_unless(netA);
+
+    netA->sort = driver_sort;
+    netA->schedule = driver_schedule;
+    netA->advance = driver_advance;
+    netA->medium = driver_medium;
+    netA->free = driver_free;
+
+    fail_unless(netA->knock);
+    fail_unless(strcmp(netA->community,"test") == 0);
+
+    // create outgoing beacon
+    fail_unless(tmesh_schedule(netA,1));
+    fail_unless(netA->beacon);
+    fail_unless(!netA->beacon->frames);
+    fail_unless(!netA->beacon->mote);
+    fail_unless(netA->beacon->medium == 1);
+
+    // should have schedule a beacon rx
+    fail_unless(scheduled == 1);
+    fail_unless(netA->knock->is_active);
+    fail_unless(netA->knock->tempo == netA->beacon);
+    fail_unless(netA->knock->tempo->at == 2);
+    fail_unless(netA->knock->tempo->chan == 1);
+
+    mote_t moteB = tmesh_mote(netA, linkAB);
+    fail_unless(moteB);
+    fail_unless(moteB->link == linkAB);
+    fail_unless(moteB->signal);
+    fail_unless(moteB->signal->medium == 1);
+    fail_unless(moteB->signal->driver == (void*)1);
+    printf("The end of the testes. Well done!\n");
     vTaskDelete(NULL);
 }
 
@@ -95,5 +148,5 @@ void user_init(void)
     sdk_wifi_set_opmode(STATIONAP_MODE);
     sdk_wifi_station_set_config(&config);
 
-    xTaskCreate(blinkTicTask, (signed char *)"blinkTicTask", 1024, NULL, 3, NULL);
+    xTaskCreate(tMeshTestTask, (signed char *)"blinkTicTask", 1024, NULL, 3, NULL);
 }
