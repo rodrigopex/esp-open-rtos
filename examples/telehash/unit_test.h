@@ -17,7 +17,7 @@ static int unit_test_pass = 0;
                 "%s:%d: test FAILED:\nFailed test: %s\n" \
                 "----------------------------------------------\n", \
                 __FILE__, __LINE__, #test); \
-        TEST_CLEAN_UP; \        
+        TEST_CLEAN_UP; \
     }else{ fprintf(stderr, "TEST   %s:%d: passed %d tests\n", __FILE__, __LINE__, ++unit_test_pass); } } while(0)
 
 #endif
