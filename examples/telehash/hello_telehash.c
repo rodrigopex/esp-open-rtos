@@ -32,6 +32,8 @@
 #define B_KEY "amhofcnwgmolf3owg2kipr5vus7uifydsy"
 #define B_SEC "ge4i7h3jln4kltngwftg2yqtjjvemerw"
 
+#define __pchar(x) (char *) x
+
 tmesh_t netA = NULL, netB = NULL;
 #define RXTX(a,b) (a->tx)?memcpy(b->frame,a->frame,64):memcpy(a->frame,b->frame,64)
 
@@ -85,20 +87,20 @@ void tMeshTestTask(void *pvParameters)
     mesh_t meshA = mesh_new();
     fail_unless(meshA);
     lob_t keyA = lob_new();
-    lob_set(keyA,"1a",A_KEY);
+    lob_set(keyA, __pchar("1a"),A_KEY);
     lob_t secA = lob_new();
-    lob_set(secA,"1a",A_SEC);
+    lob_set(secA,__pchar("1a"),A_SEC);
     fail_unless(!mesh_load(meshA,secA,keyA));
     mesh_on_discover(meshA,"auto",mesh_add);
 
     lob_t keyB = lob_new();
-    lob_set(keyB,"1a",B_KEY);
+    lob_set(keyB,__pchar("1a"),B_KEY);
     hashname_t hnB = hashname_vkeys(keyB);
     fail_unless(hnB);
     link_t linkAB = link_get(meshA,hnB);
     fail_unless(linkAB);
 
-    netA = tmesh_new(meshA, "test", NULL);
+    netA = tmesh_new(meshA, (char *) "test", NULL);
     fail_unless(netA);
 
     netA->sort = driver_sort;
@@ -136,7 +138,6 @@ void tMeshTestTask(void *pvParameters)
     printf("The end of the testes. Well done!\n");
     vTaskDelete(NULL);
 }
-
 
 void user_init(void)
 {
