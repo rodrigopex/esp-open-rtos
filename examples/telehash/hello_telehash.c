@@ -37,9 +37,6 @@ tmesh_t netA = NULL, netB = NULL;
 
 #define __vTaskDelayMs(x) vTaskDelay(x/portTICK_RATE_MS)
 
-mesh_t mesh;
-lob_t secrets;
-
 tempo_t driver_sort(tmesh_t tm, tempo_t a, tempo_t b)
 {
   if(a) return a;
@@ -133,6 +130,9 @@ void tMeshTestTask(void *pvParameters)
     fail_unless(moteB->signal);
     fail_unless(moteB->signal->medium == 1);
     fail_unless(moteB->signal->driver == (void*)1);
+    mesh_free(meshA);
+    tmesh_free(netA);
+    tmesh_free(netB);
     printf("The end of the testes. Well done!\n");
     vTaskDelete(NULL);
 }
